@@ -7,14 +7,17 @@ canvas.height = innerHeight;
 let gravity = 1;
 let friction = 0.85;
 let numberOfParticles = 100;
-const colorArray = [
-  "#457b9d",
-  "#023047",
+const colors = [
+  "#00b4d8",
   "#219ebc",
-  "#4895ef",
   "#2a9d8f",
   "#0077b6",
   "#264653",
+  "#b5179e",
+  "#ff006e",
+  "#bfd200",
+  "#ffff3f",
+  "#ff006e",
 ];
 
 let mouse = {
@@ -48,8 +51,12 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-function getRandomColor(colorsArray) {
-  return colorArray[Math.floor(Math.random() * colorArray.length)];
+function getRandomNumber(min, max) {
+  return Math.random() * (max - min + 1) + min;
+}
+
+function getRandomColor(colors) {
+  return colors[getRandomInt(0, colors.length - 1)];
 }
 
 function getDistance(x1, y1, x2, y2) {
@@ -64,46 +71,56 @@ class Particle {
     this.y = y;
     this.radius = radius;
     this.color = color;
-
-    this.speed = 0.05;
-    this.velocity = {
-      x: getRandomInt(0, 10),
-      y: getRandomInt(0, 10),
-    };
-    this.radian = getRandomInt(0, 2 * Math.PI);
+    this.speed = 0.1;
+    this.radians = getRandomNumber(0, 2 * Math.PI);
   }
 
   draw() {
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI, false);
-    ctx.save();
-    ctx.globalAlpha = 0.3;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 15;
     ctx.fillStyle = this.color;
     ctx.fill();
-    ctx.restore();
-    ctx.strokeStyle = this.color;
-    ctx.stroke();
     ctx.closePath();
   }
 
   update() {
+    this.radians += this.speed;
+    this.x += Math.cos(this.radians) * 10;
+    this.y += Math.sin(this.radians) * 10;
     this.draw();
   }
 }
 
 // Implementation
-let particlesArray;
+let particles;
 function init() {
-  particlesArray = [];
+  particles = [];
+  for (let i = 0; i < 40; i++) {
+    particles.push(
+      new Particle(
+        canvas.width / 2,
+        canvas.height / 2,
+        3,
+        getRandomColor(colors)
+      )
+    );
+  }
 }
 
 // Animation Loop
 function animate() {
   requestAnimationFrame(animate);
-  ctx.clearRect(0, 0, canvas.width, canvas.height); //refresh canvas
-  particlesArray.forEach((ptcl) => {
-    ptcl.update(particlesArray); //animation of every "particle (ptcl) in the particlesArray"
+  ctx.fillStyle = `rgba(10, 10, 10, 0.1)`;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  particles.forEach((ptcl) => {
+    ptcl.update(); //animation of every "particle (ptcl) in the particlesArray"
   });
+
+  ctx.restore();
 }
 
 init();
