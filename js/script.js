@@ -4,9 +4,9 @@ const ctx = canvas.getContext("2d");
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
-let gravity = 1;
-let friction = 0.85;
-let numberOfParticles = 100;
+let middleX = canvas.width / 2;
+let middleY = canvas.height / 2;
+
 const colors = [
   "#00b4d8",
   "#219ebc",
@@ -20,9 +20,9 @@ const colors = [
   "#ff006e",
 ];
 
-let mouse = {
-  x: undefined,
-  y: undefined,
+const mouse = {
+  x: innerWidth / 2,
+  y: innerHeight / 2,
 };
 
 window.addEventListener("mouseout", function () {
@@ -38,6 +38,7 @@ addEventListener("click", (event) => {
 addEventListener("resize", () => {
   canvas.width = innerWidth;
   canvas.height = innerHeight;
+
   init();
 });
 
@@ -71,8 +72,12 @@ class Particle {
     this.y = y;
     this.radius = radius;
     this.color = color;
-    this.speed = 0.1;
     this.radians = getRandomNumber(0, 2 * Math.PI);
+    this.speed = 0.05;
+    this.locationFromCenter = {
+      x: getRandomInt(1, 4) * 1.5,
+      y: getRandomInt(1, 4) * 1.5,
+    };
   }
 
   draw() {
@@ -85,24 +90,50 @@ class Particle {
     ctx.closePath();
   }
 
-  update() {
+  updateW() {
+    this.radians += this.speed + 0.01;
+    this.x += Math.cos(this.radians) * 1.5;
+    this.y += Math.sin(this.radians) * 1.5;
+    this.draw();
+  }
+  updateXl() {
     this.radians += this.speed;
-    this.x += Math.cos(this.radians) * 10;
-    this.y += Math.sin(this.radians) * 10;
+    this.x += Math.cos(this.radians) * this.locationFromCenter.x;
+    this.y += Math.sin(this.radians) * this.locationFromCenter.y;
+    this.draw();
+  }
+  updateXr() {
+    this.radians += this.speed;
+    this.x += Math.cos(this.radians) * this.locationFromCenter.x;
+    this.y -= Math.sin(this.radians) * this.locationFromCenter.y;
     this.draw();
   }
 }
 
 // Implementation
-let particles;
+let particlesW, particlesX;
 function init() {
-  particles = [];
-  for (let i = 0; i < 40; i++) {
-    particles.push(
+  particlesW = [];
+  particlesXl = [];
+  particlesXr = [];
+  for (let i = 0; i < getRandomInt(5, 10); i++) {
+    particlesW.push(new Particle(middleX, middleY, 1.5, "#ffffff"));
+  }
+
+  for (let i = 0; i < 30; i++) {
+    particlesXl.push(
       new Particle(
-        canvas.width / 2,
-        canvas.height / 2,
-        3,
+        middleX,
+        middleY,
+        getRandomNumber(1, 2),
+        getRandomColor(colors)
+      )
+    );
+    particlesXr.push(
+      new Particle(
+        middleX,
+        middleY,
+        getRandomNumber(1, 2),
         getRandomColor(colors)
       )
     );
@@ -112,14 +143,19 @@ function init() {
 // Animation Loop
 function animate() {
   requestAnimationFrame(animate);
-  ctx.fillStyle = `rgba(10, 10, 10, 0.1)`;
+  ctx.fillstyle = `rgba(255,255,255,0.1)`;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   ctx.save();
-  particles.forEach((ptcl) => {
-    ptcl.update(); //animation of every "particle (ptcl) in the particlesArray"
+  particlesW.forEach((ptclw) => {
+    ptclw.updateW(); //animation of every "particle (ptcl) in the particlesArray"
   });
 
+  particlesXl.forEach((ptclXl) => {
+    ptclXl.updateXl(); //animation of every "particle (ptcl) in the particlesArray"
+  });
+  particlesXr.forEach((ptclXr) => {
+    ptclXr.updateXr(); //animation of every "particle (ptcl) in the particlesArray"
+  });
   ctx.restore();
 }
 
